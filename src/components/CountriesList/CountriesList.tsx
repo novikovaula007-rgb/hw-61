@@ -49,6 +49,7 @@ const CountriesList = () => {
                     height: '500px',
                     border: '2px solid gray',
                     padding: '10px',
+                    overflowY: 'auto',
                 }}><CountryInfo alpha3Code={selectCountryCode}/></div>
             </div>
         </div>
