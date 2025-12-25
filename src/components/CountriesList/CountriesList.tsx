@@ -8,14 +8,18 @@ const USERS_URL = 'all?fields=alpha3Code,name'
 const CountriesList = () => {
     const [countries, setCountries] = useState<CountryInterface[]>([]);
     const [selectCountryCode, setSelectCountryCode] = useState<null | string>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const fetchData = useCallback(async () => {
         try {
+            setIsLoading(true)
             const response = await axiosAPI.get<CountryInterface[]>(USERS_URL)
             const users = response.data
             setCountries(users)
         } catch (e) {
             console.log(e)
+        } finally {
+            setIsLoading(false)
         }
     }, [])
 
@@ -33,6 +37,8 @@ const CountriesList = () => {
                     padding: '10px',
                 }}>
                     <div>
+                        {isLoading && <div className="spinner-border text-dark" role="status"></div>}
+
                         {countries.map(country => {
                             return <div key={country.alpha3Code} style={{
                                 border: '1px solid gray',

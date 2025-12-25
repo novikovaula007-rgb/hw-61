@@ -10,28 +10,38 @@ const COUNTRY_URL = 'alpha/';
 
 const CountryInfo: React.FC<Props> = ({alpha3Code}) => {
     const [country, setCountry] = useState<CountryInfoInterface | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const fetchCountry = useCallback(async () => {
-        if (alpha3Code !== null) {
-            const countryResponse = await axiosAPI.get<CountryInfoInterface>(COUNTRY_URL + alpha3Code);
-            const country = countryResponse.data
-            if (country.borders) {
-                const response = country.borders.map(async border => {
-                    return (await axiosAPI.get<CountryInfoInterface>(COUNTRY_URL + border)).data.name
-                })
-                const bordersName = await Promise.all(response)
-                setCountry({...country, borders: bordersName})
-            } else {
-                setCountry(country)
+        try {
+            if (alpha3Code !== null) {
+                setIsLoading(true)
+                const countryResponse = await axiosAPI.get<CountryInfoInterface>(COUNTRY_URL + alpha3Code);
+                const country = countryResponse.data
+
+                if (country.borders) {
+                    const response = country.borders.map(async border => {
+                        return (await axiosAPI.get<CountryInfoInterface>(COUNTRY_URL + border)).data.name
+                    })
+                    const bordersName = await Promise.all(response)
+                    setCountry({...country, borders: bordersName})
+                } else {
+                    setCountry(country)
+                }
             }
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setIsLoading(false)
         }
+
     }, [alpha3Code]);
-    console.log(country)
+
     useEffect(() => {
         fetchCountry().catch(console.error);
     }, [fetchCountry]);
 
-    if (country) {
+    if (country && !isLoading) {
         return (<div>
             <img src={country.flag} alt={country.name} style={{
                 border: '1px solid gray',
@@ -48,9 +58,11 @@ const CountryInfo: React.FC<Props> = ({alpha3Code}) => {
                         return <ul key={border} style={{marginBottom: '0'}}>{border}</ul>
                     })}
                 </li>
-            </>: <p>Country doesn't have borders.</p>}
+            </> : <p>Country doesn't have borders.</p>}
 
         </div>)
+    } else if (isLoading) {
+        return (<div className="spinner-border text-dark" role="status"></div>)
     } else {
         return ('Select country to see more information')
     }
